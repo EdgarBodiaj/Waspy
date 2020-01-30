@@ -5,6 +5,10 @@ TagManager:
   serializedVersion: 2
   tags:
   - Wasp
+  - projectile
+  - FxTemporaire
+  - Target
+  - Plane
   layers:
   - Default
   - TransparentFX

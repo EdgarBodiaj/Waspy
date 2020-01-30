@@ -27,6 +27,11 @@ public class DrunkenWasp : MonoBehaviour
     private Vector3 waspVelocity;
 	private Vector3 currentTarget;
 	private State state = State.Hover;
+    
+    //List of Target Points
+    List<GameObject> targets = new List<GameObject>();
+    //List of Walk areas
+    List<GameObject> planes = new List<GameObject>();
 
     // Start is called before the first frame update
     void Start()
@@ -34,6 +39,20 @@ public class DrunkenWasp : MonoBehaviour
 		waspSkeleton = gameObject.GetComponent<Animator>();
 		waspVelocity = Vector3.zero;
 		seekPosition = transform.position;
+        //targets.Add();
+        Debug.Log(GameObject.FindGameObjectsWithTag("Target").Length);
+        for (int i = 0; i < GameObject.FindGameObjectsWithTag("Target").Length; i++)
+        {
+            //Add all targets to list
+            targets.Add(GameObject.FindGameObjectsWithTag("Target")[i]);
+        }
+        for (int i = 0; i < GameObject.FindGameObjectsWithTag("Plane").Length; i++)
+        {
+            //Add all targets to list
+            planes.Add(GameObject.FindGameObjectsWithTag("Plane")[i]);
+        }
+        Debug.Log(targets.Count);
+        Debug.Log(planes.Count);
     }
 
 	void FixedUpdate()
@@ -124,10 +143,10 @@ public class DrunkenWasp : MonoBehaviour
 	}
 
 	void Land() {
-		waspSkeleton.SetBool("Fly", true);
+		waspSkeleton.SetBool("Fly", false);
 	}
 
 	void Idle() {
-		waspSkeleton.SetBool("Fly", false);
+		waspSkeleton.SetBool("Finish", true);
 	}
 }
