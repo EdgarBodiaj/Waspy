@@ -4,26 +4,29 @@ using UnityEngine;
 
 public class DrunkenWasp : MonoBehaviour
 {
-	public float randomness = 1f;
-	// adjust these to taste:
+	public enum State { Fly, Hover, Land, Idle };
+
+	public float randomness = 2f;
 	public float swerveAmount = 3f;
 	public float swerveSpeed = 2f; 
-	//public GameObject seeker;
 	public GameObject target;
 	public Animator waspSkeleton;
 
-	//public GameObject test;
+	public float hoverTime = 3f;
+	private float hoverWait = 0f;
 
-	// distance from target at which swerving starts to reduce
-	public float thresholdDist = 1f;  
+	public float flyDistance = 5f;
 
    	public float Mass = 1f;
     public float MaxVelocity = 4f;
     public float MaxForce = 2f;
 	public float ForwardVelocity = 1;
+	public float rotateSpeed = 2f;
 
 	private Vector3 seekPosition;
     private Vector3 waspVelocity;
+	private Vector3 currentTarget;
+	private State state = State.Hover;
 
     // Start is called before the first frame update
     void Start()
@@ -33,27 +36,71 @@ public class DrunkenWasp : MonoBehaviour
 		seekPosition = transform.position;
     }
 
-    // Update is called once per frame
-    void Update()
-    {
-		if (Input.GetKey(KeyCode.DownArrow))
-			waspSkeleton.SetBool("Fly", false);
-		else
-			waspSkeleton.SetBool("Fly", true);
-	}
-
 	void FixedUpdate()
 	{
+		if(state == State.Fly) {
+			Fly();
+		} else if(state == State.Hover) {
+			Hover();
+		} else if(state == State.Land) {
+			Land();
+		} else if(state == State.Idle) {
+			Idle();
+		}
+	}
+
+	void Fly()  {
+		// Close enough to hover?
+		if((currentTarget - seekPosition).magnitude < 1) {
+			seekPosition = currentTarget;
+			hoverWait = Time.time + hoverTime;
+			state = State.Hover;
+			Debug.Log("Hover");
+			Hover();
+			return;
+		}
+
 		// Move seekPosition
-		Vector3 seekVelocity = (target.transform.position - seekPosition).normalized * ForwardVelocity;
+		Vector3 seekVelocity = (currentTarget - seekPosition).normalized * ForwardVelocity;
         seekPosition += seekVelocity * Time.deltaTime;
 
-		float dist = (target.transform.position - seekPosition).magnitude;
-		float reduce = Mathf.Clamp01(dist / thresholdDist);
+		Float();
+	}
+
+	void Hover() {
+		if(Time.time > hoverWait) {
+			if(currentTarget == target.transform.position) {
+				state = State.Land;
+				Debug.Log("Land");
+				Land();
+				return;
+			} else {
+				float distance = (target.transform.position - transform.position).magnitude;
+				if(distance <= flyDistance) 
+				{
+					currentTarget = target.transform.position;
+				} else {
+					currentTarget = transform.position + ((target.transform.position - transform.position).normalized * flyDistance);
+					currentTarget = currentTarget + new Vector3(Random.Range(-randomness, randomness), Random.Range(-randomness, randomness), Random.Range(-randomness, randomness));
+					//currentTarget = Quaternion.Euler(Random.Range(-randomness, randomness), Random.Range(-randomness, randomness), 0) * currentTarget;
+					Debug.Log(currentTarget);
+				}
+				state = State.Fly;
+				Debug.Log("Fly");
+				Fly();
+				return;
+			}
+		}
+
+		Float();
+	}
+
+	void Float() {
+		waspSkeleton.SetBool("Fly", true);
 		float timing = Time.time * swerveSpeed;
-		float offsetX = (Mathf.Sin(timing + Random.Range(-randomness, randomness)) * swerveAmount * reduce);
-		float offsetY = Random.Range(-randomness, randomness);
-		float offsetZ = (Mathf.Cos(timing + Random.Range(-randomness, randomness)) * swerveAmount * reduce);
+		float offsetX = (Mathf.Sin(timing + Random.Range(-randomness, randomness)) * swerveAmount);// * reduce);
+		float offsetY = (Mathf.Sin(timing + Random.Range(-randomness, randomness)) * swerveAmount);
+		float offsetZ = (Mathf.Cos(timing + Random.Range(-randomness, randomness)) * swerveAmount);// * reduce);
 		Vector3 offset = new Vector3(offsetX, offsetY, offsetZ); 
 		Vector3 swerveTarget = seekPosition + offset;
 		//test.transform.position = swerveTarget;
@@ -67,9 +114,20 @@ public class DrunkenWasp : MonoBehaviour
 
         waspVelocity = Vector3.ClampMagnitude(waspVelocity + steering, MaxVelocity);
         transform.position += waspVelocity * Time.deltaTime;
-        transform.forward = (target.transform.position - transform.position).normalized;
+
+		if(state == State.Fly || currentTarget == target.transform.position) {
+        	transform.forward = (currentTarget - transform.position).normalized;
+		}
 
         Debug.DrawRay(transform.position, waspVelocity.normalized * 2, Color.green);
         Debug.DrawRay(transform.position, desiredVelocity.normalized * 2, Color.magenta);
+	}
+
+	void Land() {
+		waspSkeleton.SetBool("Fly", true);
+	}
+
+	void Idle() {
+		waspSkeleton.SetBool("Fly", false);
 	}
 }
