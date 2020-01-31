@@ -43,8 +43,7 @@ public class DrunkenWasp : MonoBehaviour
 		waspSkeleton = gameObject.GetComponent<Animator>();
 		waspVelocity = Vector3.zero;
 		seekPosition = transform.position;
-        //targets.Add();
-        Debug.Log(GameObject.FindGameObjectsWithTag("Target").Length);
+
         for (int i = 0; i < GameObject.FindGameObjectsWithTag("Target").Length; i++)
         {
             //Add all targets to list
