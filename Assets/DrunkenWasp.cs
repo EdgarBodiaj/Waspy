@@ -38,10 +38,13 @@ public class DrunkenWasp : MonoBehaviour
     private List<GameObject> planes = new List<GameObject>();
 	private List<GameObject> spawns = new List<GameObject>();
 
+	private AudioSource buzzing;
+
     // Start is called before the first frame update
     void Start()
     {
-		waspSkeleton = gameObject.GetComponent<Animator>();
+		waspSkeleton = GetComponent<Animator>();
+		buzzing = GetComponent<AudioSource>();
 		waspVelocity = Vector3.zero;
 		seekPosition = transform.position;
 
@@ -165,6 +168,9 @@ public class DrunkenWasp : MonoBehaviour
 		// TODO Collisions
 		waspSkeleton.SetBool("Fly", true);
 		waspSkeleton.SetBool("Finish", false);		
+		if(!buzzing.isPlaying) {
+			buzzing.Play();
+		}
 		float timing = Time.time * swerveSpeed;
 		float offsetX = (Mathf.Sin(timing + Random.Range(-randomness, randomness)) * swerveAmount * reduce);
 		float offsetY = (Mathf.Sin(timing + Random.Range(-randomness, randomness)) * swerveAmount * reduce);
@@ -199,7 +205,6 @@ public class DrunkenWasp : MonoBehaviour
 	}
 
 	void Land() {
-		waspSkeleton.SetBool("Fly", true);
 		if((transform.position - target.transform.position).magnitude < 0.01) {
 			state = State.Idle;
 			waitUntil = Time.time + hoverTime + Random.Range(-randomness, randomness);
@@ -219,6 +224,9 @@ public class DrunkenWasp : MonoBehaviour
 	void Idle() {
 		waspSkeleton.SetBool("Fly", false);
 		waspSkeleton.SetBool("Finish", true);
+		if(buzzing.isPlaying) {
+			buzzing.Stop();
+		}
 
 		if(Time.time > waitUntil) {
 			currentTarget = target.transform.position + (target.transform.up.normalized * hoverDistance * 3);

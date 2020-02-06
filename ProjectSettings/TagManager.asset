@@ -9,6 +9,7 @@ TagManager:
   - FxTemporaire
   - Target
   - Plane
+  - Spawn
   layers:
   - Default
   - TransparentFX
